@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>肩たたき券ジェネレーター</title>
+    <style>
+        body {
+            padding: 20px;
+            font-family: 'Arial', sans-serif;
+            background: #f0f0f0;
+        }
+        .container {
+            display: flex;
+            gap: 30px;
+        }
+        .input-area {
+            width: 300px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .preview-area {
+            flex-grow: 1;
+        }
+        input, textarea, button {
+            margin-bottom: 15px;
+            width: 100%;
+            padding: 8px;
+        }
+        .coupon {
+            width: 91mm;
+            height: 55mm;
+            border: 1px dashed #ccc;
+            background: white;
+            display: flex;
+            flex-direction: column;
+            box-sizing: border-box;
+            overflow: hidden;
+        }
+        .floral-pattern {
+            background-color: #ffe4e1;
+        }
+        .title {
+            text-align: center;
+            font-size: 24pt; /* フォントサイズを倍に変更 */
+            font-weight: bold;
+            color: #e74c3c;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+            padding: 2mm 0;
+            flex-shrink: 0;
+        }
+        .coupon-content {
+            display: flex;
+            flex-grow: 1;
+            align-items: center;
+            padding: 0 5mm;
+            overflow: hidden;
+        }
+        .user-image {
+            width: 30mm;
+            height: 30mm;
+            object-fit: cover;
+            border: 1mm solid #fff;
+            box-shadow: 0 0 5px rgba(0,0,0,0.2);
+            margin-right: 5mm;
+            flex-shrink: 0;
+        }
+        .content {
+            flex-grow: 1;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.95);
+            padding: 2mm;
+            border-radius: 2mm;
+            overflow: hidden;
+        }
+        .content h3 {
+            margin: 1mm 0;
+            font-size: 20pt; /* フォントサイズを倍に変更 */
+        }
+        .content p {
+            margin: 1mm 0;
+            font-size: 18pt; /* フォントサイズを倍に変更 */
+        }
+        @media print {
+            body {
+                margin: 0;
+                padding: 0;
+            }
+            .container, .input-area {
+                display: none;
+            }
+            .print-container {
+                display: flex;
+                flex-wrap: wrap;
+                width: 210mm;
+                height: 297mm;
+                margin: 0;
+                padding: 5mm;
+                box-sizing: border-box;
+                justify-content: center;
+                align-content: flex-start;
+            }
+            .coupon {
+                margin: 2mm;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="input-area">
+            <h2>デザイン設定</h2>
+            <input type="file" id="imageUpload" accept="image/*">
+            <input type="text" id="name" placeholder="名前を入力">
+            <input type="number" id="minutes" placeholder="時間（分）">
+            <textarea id="message" placeholder="メッセージ" rows="3"></textarea>
+            <button onclick="updatePreview()">プレビュー更新</button>
+            <button onclick="printCoupon()">印刷</button>
+        </div>
+        <div class="preview-area">
+            <div class="coupon floral-pattern" id="previewCoupon">
+                <div class="title">肩たたき券</div>
+                <div class="coupon-content">
+                    <img class="user-image" id="previewImage" alt="ユーザー画像">
+                    <div class="content">
+                        <h3 id="previewName">名前</h3>
+                        <p>有効時間: <span id="previewMinutes">0</span>分</p>
+                        <p id="previewMessage">メッセージ</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="print-container" id="printContainer"></div>
+    <script>
+        function updatePreview() {
+            const file = document.getElementById('imageUpload').files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('previewImage').src = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+            document.getElementById('previewName').textContent = document.getElementById('name').value;
+            document.getElementById('previewMinutes').textContent = document.getElementById('minutes').value;
+            document.getElementById('previewMessage').textContent = document.getElementById('message').value;
+        }
+
+        function printCoupon() {
+            const printContainer = document.getElementById('printContainer');
+            printContainer.innerHTML = ''; 
+
+            const couponWidth = 91; 
+            const couponHeight = 55; 
+            const pageWidth = 210; 
+            const pageHeight = 297; 
+            const margin = 5; 
+
+            const couponColumns = Math.floor((pageWidth - 2 * margin) / couponWidth);
+            const couponRows = Math.floor((pageHeight - 2 * margin) / couponHeight);
+            const totalCoupons = couponColumns * couponRows;
+
+            for (let i = 0; i < totalCoupons; i++) {
+                const couponClone = document.getElementById('previewCoupon').cloneNode(true);
+                
+                couponClone.id = `coupon-${i}`;
+                const imageClone = couponClone.querySelector('.user-image');
+                const nameClone = couponClone.querySelector('#previewName');
+                const minutesClone = couponClone.querySelector('#previewMinutes');
+                const messageClone = couponClone.querySelector('#previewMessage');
+
+                imageClone.id = `image-${i}`;
+                nameClone.id = `name-${i}`;
+                minutesClone.id = `minutes-${i}`;
+                messageClone.id = `message-${i}`;
+
+                printContainer.appendChild(couponClone);
+            }
+
+            window.print();
+        }
+    </script>
+</body>
+</html>
